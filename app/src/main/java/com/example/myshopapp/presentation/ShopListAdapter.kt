@@ -2,8 +2,12 @@ package com.example.myshopapp.presentation
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.ListAdapter
 import com.example.myshopapp.R
+import com.example.myshopapp.databinding.ItemShopDisabledBinding
+import com.example.myshopapp.databinding.ItemShopEnabledBinding
 import com.example.myshopapp.domain.ShopItem
 
 class ShopListAdapter : ListAdapter<ShopItem, ShopItemViewHolder>(ShopItemDiffCallback()) {
@@ -22,21 +26,32 @@ class ShopListAdapter : ListAdapter<ShopItem, ShopItemViewHolder>(ShopItemDiffCa
             VIEW_TYPE_DISABLED -> R.layout.item_shop_disabled
             else -> throw RuntimeException("Unknown viewType: $viewType")
         }
-        val view = LayoutInflater.from(parent.context).inflate(layout, parent, false)
-        return ShopItemViewHolder(view)
+        val binding = DataBindingUtil.inflate<ViewDataBinding>(
+            LayoutInflater.from(parent.context),
+            layout,
+            parent,
+            false
+        )
+        return ShopItemViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ShopItemViewHolder, position: Int) {
         val shopItem = getItem(position)
-        with(holder) {
-            tvName.text = shopItem.name
-            tvCount.text = shopItem.count.toString()
-            view.setOnLongClickListener {
-                onShopItemLongClickListener?.invoke(shopItem)
-                true
+        val binding = holder.binding
+        binding.root.setOnLongClickListener {
+            onShopItemLongClickListener?.invoke(shopItem)
+            true
+        }
+        binding.root.setOnClickListener {
+            onShopItemClickListener?.invoke(shopItem)
+        }
+        when (binding) {
+            is ItemShopDisabledBinding -> {
+                binding.shopItem = shopItem
             }
-            view.setOnClickListener {
-                onShopItemClickListener?.invoke(shopItem)
+
+            is ItemShopEnabledBinding -> {
+                binding.shopItem = shopItem
             }
         }
     }
